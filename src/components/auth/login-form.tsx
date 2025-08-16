@@ -22,7 +22,7 @@ import { TikTokIcon } from '@/components/icons';
 import { type AccountData } from '@/components/dashboard/account';
 
 const formSchema = z.object({
-  username: z.string().min(1, { message: 'Username is required.' }),
+  emailOrPhone: z.string().min(1, { message: 'Email or phone number is required.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
@@ -33,7 +33,7 @@ export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
+      emailOrPhone: '',
       password: '',
     },
   });
@@ -43,14 +43,18 @@ export function LoginForm() {
     // Simulate API call for authentication and fetching account data
     setTimeout(() => {
       try {
+        const username = values.emailOrPhone.includes('@')
+          ? values.emailOrPhone.split('@')[0]
+          : values.emailOrPhone;
+
         const newAccount: AccountData = {
           id: `id_${new Date().getTime()}`,
-          username: values.username.startsWith('@') ? values.username : `@${values.username}`,
-          profilePicture: `https://placehold.co/150x150.png?text=${values.username.charAt(0).toUpperCase()}`,
+          username: `@${username}`,
+          profilePicture: `https://placehold.co/150x150.png?text=${username.charAt(0).toUpperCase()}`,
           followers: Math.floor(Math.random() * 200000),
           following: Math.floor(Math.random() * 1000),
           likes: Math.floor(Math.random() * 2000000),
-          bio: `Bio for ${values.username}`,
+          bio: `Bio for ${username}`,
         };
 
         const existingAccountsRaw = localStorage.getItem('tiktok_accounts');
@@ -58,7 +62,7 @@ export function LoginForm() {
         
         // Prevent adding duplicate usernames
         if (existingAccounts.some((acc: AccountData) => acc.username === newAccount.username)) {
-            form.setError('username', { type: 'manual', message: 'This account has already been added.' });
+            form.setError('emailOrPhone', { type: 'manual', message: 'This account has already been added.' });
             setIsLoading(false);
             return;
         }
@@ -84,12 +88,12 @@ export function LoginForm() {
           <CardContent className="space-y-6 pt-6">
             <FormField
               control={form.control}
-              name="username"
+              name="emailOrPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>TikTok Username</FormLabel>
+                  <FormLabel>Email or Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="@username" {...field} disabled={isLoading} />
+                    <Input placeholder="email@example.com or phone number" {...field} disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
