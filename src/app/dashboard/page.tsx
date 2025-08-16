@@ -19,6 +19,12 @@ const INITIAL_SETTINGS: BotSettings = {
   shuffleEnabled: true,
   language: 'ru',
   theme: 'light',
+  minViews: 1000,
+  maxViews: 1000000,
+  minLikes: 100,
+  maxLikes: 100000,
+  minComments: 10,
+  maxComments: 1000,
 };
 
 const MOCK_ACCOUNT_DATA: AccountData = {
@@ -59,11 +65,28 @@ export default function DashboardPage() {
     const videoId = `7${Math.random().toString().substring(2, 20)}`;
     const author = `user_${Math.random().toString(36).substring(2, 9)}`;
     const videoUrl = `https://www.tiktok.com/@${author}/video/${videoId}`;
-    const isOld = Math.random() > 0.8; // Simulate finding an old video
+    
+    // Simulate video stats
+    const videoStats = {
+      views: Math.floor(Math.random() * 1500000),
+      likes: Math.floor(Math.random() * 150000),
+      comments: Math.floor(Math.random() * 1500),
+      isOld: Math.random() > 0.8,
+    };
 
-    if (isOld) {
+    const isSuitable = 
+      videoStats.views >= settings.minViews && videoStats.views <= settings.maxViews &&
+      videoStats.likes >= settings.minLikes && videoStats.likes <= settings.maxLikes &&
+      videoStats.comments >= settings.minComments && videoStats.comments <= settings.maxComments;
+
+    if (videoStats.isOld) {
         addLog('warning', `Video from @${author} is older than 18 months, skipping.`, videoUrl);
         return;
+    }
+    
+    if (!isSuitable) {
+      addLog('warning', `Video from @${author} does not match criteria, skipping. (V: ${videoStats.views}, L: ${videoStats.likes}, C: ${videoStats.comments})`, videoUrl);
+      return;
     }
 
     addLog('success', `Video from @${author} found. Watching for ${settings.viewDelayMin/1000}-${settings.viewDelayMax/1000} seconds.`, videoUrl);
@@ -144,8 +167,9 @@ export default function DashboardPage() {
       <Header onThemeChange={(theme) => setSettings(s => ({...s, theme}))} currentTheme={settings.theme}/>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="bot" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
             <TabsTrigger value="bot">Bot</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
           <TabsContent value="bot">
@@ -158,15 +182,19 @@ export default function DashboardPage() {
                   onStop={handleStop}
                   language={settings.language}
                 />
-                <Settings 
-                  settings={settings}
-                  onSettingsChange={setSettings}
-                  isBotRunning={isRunning}
-                />
               </div>
               <div className="lg:col-span-2">
                 <ActivityLog logs={logs} language={settings.language}/>
               </div>
+            </div>
+          </TabsContent>
+           <TabsContent value="settings">
+            <div className="max-w-2xl mx-auto">
+               <Settings 
+                settings={settings}
+                onSettingsChange={setSettings}
+                isBotRunning={isRunning}
+              />
             </div>
           </TabsContent>
           <TabsContent value="account">

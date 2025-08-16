@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle } from 'lucide-react';
+import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle, ThumbsUp, MessageSquareText } from 'lucide-react';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from '../ui/switch';
@@ -37,7 +37,13 @@ const translations = {
     russian: 'Russian',
     english: 'English',
     shuffle: 'Shuffle symbols',
-    shuffleDesc: 'Randomize symbols in comment text for uniqueness.'
+    shuffleDesc: 'Randomize symbols in comment text for uniqueness.',
+    suitableVideo: 'Suitable Video Parameters',
+    views: 'Views',
+    likes: 'Likes',
+    comments: 'Comments',
+    min: 'Min',
+    max: 'Max',
   },
   ru: {
     title: 'Настройки',
@@ -56,7 +62,13 @@ const translations = {
     russian: 'Русский',
     english: 'Английский',
     shuffle: 'Перемешивать символы',
-    shuffleDesc: 'Перемешивать символы в тексте комментария для уникальности.'
+    shuffleDesc: 'Перемешивать символы в тексте комментария для уникальности.',
+    suitableVideo: 'Параметры подходящего видео',
+    views: 'Просмотры',
+    likes: 'Лайки',
+    comments: 'Комментарии',
+    min: 'Мин',
+    max: 'Макс',
   },
 };
 
@@ -70,6 +82,12 @@ export interface BotSettings {
     shuffleEnabled: boolean;
     language: 'en' | 'ru';
     theme: 'light' | 'dark';
+    minViews: number;
+    maxViews: number;
+    minLikes: number;
+    maxLikes: number;
+    minComments: number;
+    maxComments: number;
 }
 
 interface SettingsProps {
@@ -114,14 +132,14 @@ export function Settings({ settings, onSettingsChange, isBotRunning }: SettingsP
   }, [settings]);
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-lg mt-4">
       <CardHeader>
         <CardTitle className="font-headline">{t.title}</CardTitle>
         <CardDescription>
           {t.description}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         <div className="space-y-2">
             <Label htmlFor="language" className="flex items-center gap-2"><Languages className="h-4 w-4" /> {t.language}</Label>
             <RadioGroup 
@@ -157,6 +175,33 @@ export function Settings({ settings, onSettingsChange, isBotRunning }: SettingsP
             <div className='grid gap-1.5'>
                 <Label htmlFor="shuffle-enabled" className='flex items-center gap-2'><Shuffle className="h-4 w-4" />{t.shuffle}</Label>
                 <p className="text-xs text-muted-foreground">{t.shuffleDesc}</p>
+            </div>
+        </div>
+        
+        <div className="space-y-4">
+            <h3 className="text-lg font-medium font-headline">{t.suitableVideo}</h3>
+            <div className="space-y-4 rounded-md border p-4">
+                 <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Eye className="h-4 w-4" /> {t.views}</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input id="minViews" type="number" value={localSettings.minViews} onChange={handleNumberInputChange} placeholder={t.min} disabled={isBotRunning}/>
+                        <Input id="maxViews" type="number" value={localSettings.maxViews} onChange={handleNumberInputChange} placeholder={t.max} disabled={isBotRunning}/>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><ThumbsUp className="h-4 w-4" /> {t.likes}</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input id="minLikes" type="number" value={localSettings.minLikes} onChange={handleNumberInputChange} placeholder={t.min} disabled={isBotRunning}/>
+                        <Input id="maxLikes" type="number" value={localSettings.maxLikes} onChange={handleNumberInputChange} placeholder={t.max} disabled={isBotRunning}/>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><MessageSquareText className="h-4 w-4" /> {t.comments}</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input id="minComments" type="number" value={localSettings.minComments} onChange={handleNumberInputChange} placeholder={t.min} disabled={isBotRunning}/>
+                        <Input id="maxComments" type="number" value={localSettings.maxComments} onChange={handleNumberInputChange} placeholder={t.max} disabled={isBotRunning}/>
+                    </div>
+                </div>
             </div>
         </div>
 
