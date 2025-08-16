@@ -36,14 +36,15 @@ export default function DashboardPage() {
     // Simulate API call to get video
     await new Promise(res => setTimeout(res, 1500));
     const videoId = `vid_${Math.random().toString(36).substring(2, 9)}`;
+    const author = `user_${Math.random().toString(36).substring(2, 9)}`;
     const isOld = Math.random() > 0.8; // Simulate finding an old video
 
     if (isOld) {
-        addLog('warning', `Video ${videoId} is older than 18 months, skipping.`);
+        addLog('warning', `Video ${videoId} from @${author} is older than 18 months, skipping.`);
         return;
     }
 
-    addLog('success', `Video found: ${videoId}. Watching for 3-6 seconds.`);
+    addLog('success', `Video from @${author} found: ${videoId}. Watching for 3-6 seconds.`);
     setStats(prev => ({ ...prev, videos: prev.videos + 1 }));
 
     const viewDelay = Math.random() * (6000 - 3000) + 3000;
