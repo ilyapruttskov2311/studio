@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Square, Video, MessageSquare, Loader2 } from 'lucide-react';
+import { Play, Square, Video, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,18 +23,18 @@ interface ControlPanelProps {
 
 export function ControlPanel({ isRunning, stats, onStart, onStop }: ControlPanelProps) {
   return (
-    <Card className="shadow-lg h-full flex flex-col">
+    <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline">Control Panel</CardTitle>
         <CardDescription>Start or stop the bot and monitor its activity.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow space-y-6">
+      <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Status</span>
             {isRunning ? (
                 <div className="flex items-center gap-2">
                     <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                     </span>
                     <span className="font-medium text-green-600">Running</span>
@@ -68,11 +68,11 @@ export function ControlPanel({ isRunning, stats, onStart, onStop }: ControlPanel
 
       </CardContent>
       <CardFooter className="flex gap-2">
-        <Button onClick={onStart} disabled={isRunning} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button onClick={onStart} disabled={isRunning} className="w-full bg-green-500 text-white hover:bg-green-600">
           <Play className="mr-2 h-4 w-4" /> Start Bot
         </Button>
         <Button onClick={onStop} disabled={!isRunning} variant="destructive" className="w-full">
-          {isRunning ? <Square className="mr-2 h-4 w-4" /> : <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+           <Square className="mr-2 h-4 w-4" />
            Stop Bot
         </Button>
       </CardFooter>

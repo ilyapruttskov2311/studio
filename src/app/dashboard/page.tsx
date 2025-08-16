@@ -4,10 +4,17 @@ import * as React from 'react';
 import { Header } from '@/components/dashboard/header';
 import { ControlPanel } from '@/components/dashboard/control-panel';
 import { ActivityLog, type Log } from '@/components/dashboard/activity-log';
-import { Settings } from '@/components/dashboard/settings';
+import { Settings, type BotSettings } from '@/components/dashboard/settings';
 import { useToast } from '@/hooks/use-toast';
 
-const INITIAL_COMMENT_TEXT = "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰";
+const INITIAL_SETTINGS: BotSettings = {
+  commentText: "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰",
+  cycleInterval: 25000,
+  viewDelayMin: 3000,
+  viewDelayMax: 6000,
+  commentDelayMin: 4000,
+  commentDelayMax: 6000,
+};
 
 const shuffleText = (text: string): string => {
   const prefix = text.substring(0, 27).split('').sort(() => 0.5 - Math.random()).join('');
@@ -20,7 +27,7 @@ export default function DashboardPage() {
   const [isRunning, setIsRunning] = React.useState(false);
   const [logs, setLogs] = React.useState<Log[]>([]);
   const [stats, setStats] = React.useState({ videos: 0, comments: 0 });
-  const [commentText, setCommentText] = React.useState(INITIAL_COMMENT_TEXT);
+  const [settings, setSettings] = React.useState<BotSettings>(INITIAL_SETTINGS);
   const { toast } = useToast();
   
   const botIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -45,10 +52,10 @@ export default function DashboardPage() {
         return;
     }
 
-    addLog('success', `Video from @${author} found. Watching for 3-6 seconds.`, videoUrl);
+    addLog('success', `Video from @${author} found. Watching for ${settings.viewDelayMin/1000}-${settings.viewDelayMax/1000} seconds.`, videoUrl);
     setStats(prev => ({ ...prev, videos: prev.videos + 1 }));
 
-    const viewDelay = Math.random() * (6000 - 3000) + 3000;
+    const viewDelay = Math.random() * (settings.viewDelayMax - settings.viewDelayMin) + settings.viewDelayMin;
     await new Promise(res => setTimeout(res, viewDelay));
 
     addLog('info', `[${videoId}] Analyzing comments...`);
@@ -66,10 +73,10 @@ export default function DashboardPage() {
     addLog('info', `[${videoId}] Found ${commentsToPost} new comments to reply to.`);
 
     for (let i = 0; i < commentsToPost; i++) {
-        const commentDelay = Math.random() * (6000 - 4000) + 4000;
+        const commentDelay = Math.random() * (settings.commentDelayMax - settings.commentDelayMin) + settings.commentDelayMin;
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
-            const replyText = currentCommentCount % 10 === 0 ? shuffleText(commentText) : commentText;
+            const replyText = currentCommentCount % 10 === 0 ? shuffleText(settings.commentText) : settings.commentText;
             
             addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
@@ -81,7 +88,7 @@ export default function DashboardPage() {
         }, (i + 1) * commentDelay);
         commentTimeoutsRef.current.push(timeoutId);
     }
-  }, [addLog, stats.comments, commentText]);
+  }, [addLog, stats.comments, settings]);
 
 
   const handleStart = () => {
@@ -89,7 +96,7 @@ export default function DashboardPage() {
     addLog('info', 'Bot started.');
     toast({ title: "Bot Started", description: "The automator is now running.", variant: 'default' });
     runBotCycle(); // Run first cycle immediately
-    botIntervalRef.current = setInterval(runBotCycle, 25000); // Subsequent cycles
+    botIntervalRef.current = setInterval(runBotCycle, settings.cycleInterval); // Subsequent cycles
   };
 
   const handleStop = () => {
@@ -117,7 +124,7 @@ export default function DashboardPage() {
       <Header />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className="flex flex-col gap-4">
+          <div className="grid gap-4 auto-rows-max">
             <ControlPanel
               isRunning={isRunning}
               stats={stats}
@@ -125,8 +132,9 @@ export default function DashboardPage() {
               onStop={handleStop}
             />
             <Settings 
-              commentText={commentText}
-              onCommentTextChange={setCommentText}
+              settings={settings}
+              onSettingsChange={setSettings}
+              isBotRunning={isRunning}
             />
           </div>
           <div className="lg:col-span-2">
