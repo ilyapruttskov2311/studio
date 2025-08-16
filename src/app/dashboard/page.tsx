@@ -17,6 +17,7 @@ const INITIAL_SETTINGS: BotSettings = {
   commentDelayMin: 4000,
   commentDelayMax: 6000,
   shuffleEnabled: true,
+  shuffleCharacterCount: 27,
   language: 'ru',
   theme: 'light',
   minViews: 1000,
@@ -36,10 +37,13 @@ const MOCK_ACCOUNT_DATA: AccountData = {
     bio: 'Just a user having fun on TikTok!',
 };
 
-const shuffleText = (text: string): string => {
-  const prefix = text.substring(0, 27).split('').sort(() => 0.5 - Math.random()).join('');
-  const suffix = text.substring(text.length - 27).split('').sort(() => 0.5 - Math.random()).join('');
-  const middle = text.substring(27, text.length - 27);
+const shuffleText = (text: string, count: number): string => {
+  if (count <= 0) return text;
+  if (text.length < count * 2) return text.split('').sort(() => 0.5 - Math.random()).join('');
+  
+  const prefix = text.substring(0, count).split('').sort(() => 0.5 - Math.random()).join('');
+  const suffix = text.substring(text.length - count).split('').sort(() => 0.5 - Math.random()).join('');
+  const middle = text.substring(count, text.length - count);
   return prefix + middle + suffix;
 };
 
@@ -114,7 +118,7 @@ export default function DashboardPage() {
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
             const useShuffle = settings.shuffleEnabled && (currentCommentCount % 10 === 0);
-            const replyText = useShuffle ? shuffleText(settings.commentText) : settings.commentText;
+            const replyText = useShuffle ? shuffleText(settings.commentText, settings.shuffleCharacterCount) : settings.commentText;
             
             addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));

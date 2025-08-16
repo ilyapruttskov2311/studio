@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle, ThumbsUp, MessageSquareText } from 'lucide-react';
+import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle, ThumbsUp, MessageSquareText, Hash } from 'lucide-react';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from '../ui/switch';
@@ -38,6 +38,8 @@ const translations = {
     english: 'English',
     shuffle: 'Shuffle symbols',
     shuffleDesc: 'Randomize symbols in comment text for uniqueness.',
+    shuffleCharCount: 'Number of characters to shuffle',
+    shuffleCharCountDesc: 'The number of characters to shuffle from the beginning and end of the comment.',
     suitableVideo: 'Suitable Video Parameters',
     views: 'Views',
     likes: 'Likes',
@@ -63,6 +65,8 @@ const translations = {
     english: 'Английский',
     shuffle: 'Перемешивать символы',
     shuffleDesc: 'Перемешивать символы в тексте комментария для уникальности.',
+    shuffleCharCount: 'Количество символов для перемешивания',
+    shuffleCharCountDesc: 'Количество символов для перемешивания в начале и конце комментария.',
     suitableVideo: 'Параметры подходящего видео',
     views: 'Просмотры',
     likes: 'Лайки',
@@ -80,6 +84,7 @@ export interface BotSettings {
     commentDelayMin: number;
     commentDelayMax: number;
     shuffleEnabled: boolean;
+    shuffleCharacterCount: number;
     language: 'en' | 'ru';
     theme: 'light' | 'dark';
     minViews: number;
@@ -170,12 +175,21 @@ export function Settings({ settings, onSettingsChange, isBotRunning }: SettingsP
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-            <Switch id="shuffle-enabled" checked={localSettings.shuffleEnabled} onCheckedChange={handleSwitchChange} disabled={isBotRunning}/>
-            <div className='grid gap-1.5'>
-                <Label htmlFor="shuffle-enabled" className='flex items-center gap-2'><Shuffle className="h-4 w-4" />{t.shuffle}</Label>
-                <p className="text-xs text-muted-foreground">{t.shuffleDesc}</p>
+        <div className="space-y-4 rounded-md border p-4">
+            <div className="flex items-center space-x-2">
+                <Switch id="shuffle-enabled" checked={localSettings.shuffleEnabled} onCheckedChange={handleSwitchChange} disabled={isBotRunning}/>
+                <div className='grid gap-1.5'>
+                    <Label htmlFor="shuffle-enabled" className='flex items-center gap-2'><Shuffle className="h-4 w-4" />{t.shuffle}</Label>
+                    <p className="text-xs text-muted-foreground">{t.shuffleDesc}</p>
+                </div>
             </div>
+            {localSettings.shuffleEnabled && (
+                 <div className="space-y-2">
+                    <Label htmlFor="shuffleCharacterCount" className="flex items-center gap-2"><Hash className="h-4 w-4" /> {t.shuffleCharCount}</Label>
+                    <Input id="shuffleCharacterCount" type="number" value={localSettings.shuffleCharacterCount} onChange={handleNumberInputChange} placeholder="e.g., 27" disabled={isBotRunning} />
+                    <p className="text-xs text-muted-foreground">{t.shuffleCharCountDesc}</p>
+                </div>
+            )}
         </div>
         
         <div className="space-y-4">
