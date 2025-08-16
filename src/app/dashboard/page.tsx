@@ -9,6 +9,7 @@ import { Account, type AccountData } from '@/components/dashboard/account';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 const INITIAL_SETTINGS: BotSettings = {
   commentText: "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰",
