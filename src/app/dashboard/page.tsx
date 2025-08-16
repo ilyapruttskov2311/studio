@@ -132,65 +132,89 @@ export default function DashboardPage() {
     }
     addLog('info', logMessage);
     
+    // =================================================================
+    // TODO: Implement TikTok API call to find a video
+    // This should return an object with video details: { id, author, url, views, likes, comments, isOld }
+    //
+    // Example:
+    // const video = await tiktokApi.findVideo({
+    //   tag: settings.tag,
+    //   minViews: settings.minViews,
+    //   maxViews: settings.maxViews,
+    //   // ... other params
+    // });
+    // =================================================================
+    addLog('warning', 'Video search is not implemented. Using placeholder data.');
     await new Promise(res => setTimeout(res, 1500));
-    const videoId = `7${Math.random().toString().substring(2, 20)}`;
-    const author = `user_${Math.random().toString(36).substring(2, 9)}`;
-    const videoUrl = `https://www.tiktok.com/@${author}/video/${videoId}`;
-    
-    const videoStats = {
-      views: Math.floor(Math.random() * 1500000),
-      likes: Math.floor(Math.random() * 150000),
-      comments: Math.floor(Math.random() * 1500),
-      isOld: Math.random() > 0.8,
+    const video = {
+        id: `7${Math.random().toString().substring(2, 20)}`,
+        author: `user_${Math.random().toString(36).substring(2, 9)}`,
+        url: `https://www.tiktok.com/@user/video/12345`,
+        views: Math.floor(Math.random() * 1500000),
+        likes: Math.floor(Math.random() * 150000),
+        comments: Math.floor(Math.random() * 1500),
+        isOld: Math.random() > 0.8,
     };
-
-    const isSuitable = 
-      videoStats.views >= settings.minViews && videoStats.views <= settings.maxViews &&
-      videoStats.likes >= settings.minLikes && videoStats.likes <= settings.maxLikes &&
-      videoStats.comments >= settings.minComments && videoStats.comments <= settings.maxComments;
-
-    if (videoStats.isOld) {
-        addLog('warning', `Video from @${author} is older than 18 months, skipping.`, videoUrl);
+    
+    if (!video) {
+        addLog('warning', `No suitable videos found for ${activeAccount.username}.`);
         return;
     }
-    
-    if (!isSuitable) {
-      addLog('warning', `Video from @${author} does not match criteria, skipping. (V: ${videoStats.views}, L: ${videoStats.likes}, C: ${videoStats.comments})`, videoUrl);
-      return;
+
+    if (video.isOld) {
+        addLog('warning', `Video from @${video.author} is older than 18 months, skipping.`, video.url);
+        return;
     }
 
-    addLog('success', `Video from @${author} found. Watching for ${settings.viewDelayMin/1000}-${settings.viewDelayMax/1000} seconds.`, videoUrl);
+    addLog('success', `Video from @${video.author} found. Watching for ${settings.viewDelayMin/1000}-${settings.viewDelayMax/1000} seconds.`, video.url);
     setStats(prev => ({ ...prev, videos: prev.videos + 1 }));
 
     const viewDelay = Math.random() * (settings.viewDelayMax - settings.viewDelayMin) + settings.viewDelayMin;
     await new Promise(res => setTimeout(res, viewDelay));
 
-    addLog('info', `[${videoId}] Analyzing comments...`);
-    const totalComments = Math.floor(Math.random() * 50);
-    let commentsToPost = Math.floor(Math.random() * 8) + 2;
+    addLog('info', `[${video.id}] Analyzing comments...`);
+    
+    // =================================================================
+    // TODO: Implement TikTok API call to get comments for the video
+    // This should return an array of comment objects that haven't been replied to.
+    //
+    // Example:
+    // const commentsToReply = await tiktokApi.getComments(video.id);
+    // =================================================================
+    const commentsToReply = Array.from({ length: Math.floor(Math.random() * 10) });
 
-    if (totalComments < 20) {
-        commentsToPost = Math.floor(totalComments / 2);
-    }
-    if(commentsToPost === 0) {
-        addLog('warning', `[${videoId}] No comments to reply to.`);
+    if(commentsToReply.length === 0) {
+        addLog('warning', `[${video.id}] No new comments to reply to.`);
         return;
     }
 
-    addLog('info', `[${videoId}] Found ${commentsToPost} new comments to reply to.`);
+    addLog('info', `[${video.id}] Found ${commentsToReply.length} new comments to reply to.`);
 
-    for (let i = 0; i < commentsToPost; i++) {
+    for (let i = 0; i < commentsToReply.length; i++) {
         const commentDelay = Math.random() * (settings.commentDelayMax - settings.commentDelayMin) + settings.commentDelayMin;
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
             const useShuffle = settings.shuffleEnabled && (currentCommentCount % 10 === 0);
-            
-            addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
-            setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
+            let commentToPost = settings.commentText;
 
-            if(useShuffle) {
+            if (useShuffle) {
+                commentToPost = shuffleText(commentToPost, settings.shuffleCharacterCount);
                 addLog('info', 'Shuffled comment text for variety.');
             }
+            
+            // =================================================================
+            // TODO: Implement TikTok API call to post a comment reply
+            //
+            // Example:
+            // await tiktokApi.postComment({
+            //   videoId: video.id,
+            //   commentId: commentsToReply[i].id,
+            //   text: commentToPost,
+            // });
+            // =================================================================
+
+            addLog('success', `[${video.id}] Replied to comment #${i+1}.`);
+            setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
 
         }, (i + 1) * commentDelay);
         commentTimeoutsRef.current.push(timeoutId);

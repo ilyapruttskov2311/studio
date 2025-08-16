@@ -38,47 +38,61 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    // Simulate API call for authentication and fetching account data
-    setTimeout(() => {
-      try {
-        const username = values.emailOrPhone.includes('@')
-          ? values.emailOrPhone.split('@')[0]
-          : values.emailOrPhone;
+    
+    // =================================================================
+    // TODO: Implement actual TikTok authentication here.
+    // This function should call the TikTok API to verify credentials.
+    // If successful, it should return the user's account data.
+    //
+    // Example:
+    // const accountData = await tiktokApi.login(values.emailOrPhone, values.password);
+    // if (!accountData) {
+    //   form.setError('emailOrPhone', { type: 'manual', message: 'Invalid credentials.' });
+    //   setIsLoading(false);
+    //   return;
+    // }
+    // =================================================================
+    console.log("Simulating authentication for:", values.emailOrPhone);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    try {
+      const username = values.emailOrPhone.includes('@')
+        ? values.emailOrPhone.split('@')[0]
+        : values.emailOrPhone;
 
-        const newAccount: AccountData = {
-          id: `id_${new Date().getTime()}`,
-          username: `@${username}`,
-          profilePicture: `https://placehold.co/150x150.png?text=${username.charAt(0).toUpperCase()}`,
-          followers: Math.floor(Math.random() * 200000),
-          following: Math.floor(Math.random() * 1000),
-          likes: Math.floor(Math.random() * 2000000),
-          bio: `Bio for ${username}`,
-        };
+      // Placeholder account data
+      const newAccount: AccountData = {
+        id: `id_${new Date().getTime()}`,
+        username: `@${username}`,
+        profilePicture: `https://placehold.co/150x150.png?text=${username.charAt(0).toUpperCase()}`,
+        followers: Math.floor(Math.random() * 200000),
+        following: Math.floor(Math.random() * 1000),
+        likes: Math.floor(Math.random() * 2000000),
+        bio: `Bio for ${username}`,
+      };
 
-        const existingAccountsRaw = localStorage.getItem('tiktok_accounts');
-        const existingAccounts = existingAccountsRaw ? JSON.parse(existingAccountsRaw) : [];
-        
-        // Prevent adding duplicate usernames
-        if (existingAccounts.some((acc: AccountData) => acc.username === newAccount.username)) {
-            form.setError('emailOrPhone', { type: 'manual', message: 'This account has already been added.' });
-            setIsLoading(false);
-            return;
-        }
-
-        const updatedAccounts = [...existingAccounts, newAccount];
-
-        localStorage.setItem('tiktok_accounts', JSON.stringify(updatedAccounts));
-        localStorage.setItem('active_tiktok_account_id', newAccount.id);
-
-        router.push('/dashboard');
-      } catch (error) {
-        console.error("Failed to add account:", error);
-        setIsLoading(false);
-        // Here you might want to show a generic error toast to the user
+      const existingAccountsRaw = localStorage.getItem('tiktok_accounts');
+      const existingAccounts = existingAccountsRaw ? JSON.parse(existingAccountsRaw) : [];
+      
+      if (existingAccounts.some((acc: AccountData) => acc.username === newAccount.username)) {
+          form.setError('emailOrPhone', { type: 'manual', message: 'This account has already been added.' });
+          setIsLoading(false);
+          return;
       }
-    }, 1500);
+
+      const updatedAccounts = [...existingAccounts, newAccount];
+
+      localStorage.setItem('tiktok_accounts', JSON.stringify(updatedAccounts));
+      localStorage.setItem('active_tiktok_account_id', newAccount.id);
+
+      router.push('/dashboard');
+    } catch (error) {
+      console.error("Failed to add account:", error);
+      setIsLoading(false);
+      form.setError('root', { type: 'manual', message: 'An unexpected error occurred.' });
+    }
   };
 
   return (
