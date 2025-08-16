@@ -47,6 +47,19 @@ const shuffleText = (text: string, count: number): string => {
   return prefix + middle + suffix;
 };
 
+const translations = {
+    en: {
+      bot: 'Bot',
+      settings: 'Settings',
+      account: 'Account',
+    },
+    ru: {
+      bot: 'Бот',
+      settings: 'Настройки',
+      account: 'Аккаунт',
+    },
+};
+
 export default function DashboardPage() {
   const [isRunning, setIsRunning] = React.useState(false);
   const [logs, setLogs] = React.useState<Log[]>([]);
@@ -56,6 +69,8 @@ export default function DashboardPage() {
   
   const botIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const commentTimeoutsRef = React.useRef<NodeJS.Timeout[]>([]);
+
+  const t = translations[settings.language];
 
   const addLog = React.useCallback((type: Log['type'], message: string, link?: string) => {
     setLogs(prev => [{ type, message, timestamp: new Date(), link }, ...prev]);
@@ -172,9 +187,9 @@ export default function DashboardPage() {
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="bot" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
-            <TabsTrigger value="bot">Bot</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="bot">{t.bot}</TabsTrigger>
+            <TabsTrigger value="settings">{t.settings}</TabsTrigger>
+            <TabsTrigger value="account">{t.account}</TabsTrigger>
           </TabsList>
           <TabsContent value="bot">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
