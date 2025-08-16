@@ -26,6 +26,7 @@ const INITIAL_SETTINGS: BotSettings = {
   maxLikes: 100000,
   minComments: 10,
   maxComments: 1000,
+  tag: '',
 };
 
 const MOCK_ACCOUNT_DATA: AccountData = {
@@ -77,7 +78,11 @@ export default function DashboardPage() {
   }, []);
 
   const runBotCycle = React.useCallback(async () => {
-    addLog('info', 'Searching for a suitable video...');
+    if (settings.tag) {
+        addLog('info', `Searching for a suitable video with tag #${settings.tag}...`);
+    } else {
+        addLog('info', 'Searching for a suitable video...');
+    }
     
     // Simulate API call to get video
     await new Promise(res => setTimeout(res, 1500));
@@ -186,7 +191,7 @@ export default function DashboardPage() {
       <Header onThemeChange={(theme) => setSettings(s => ({...s, theme}))} currentTheme={settings.theme}/>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="bot" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto border">
             <TabsTrigger value="bot">{t.bot}</TabsTrigger>
             <TabsTrigger value="settings">{t.settings}</TabsTrigger>
             <TabsTrigger value="account">{t.account}</TabsTrigger>
@@ -224,3 +229,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

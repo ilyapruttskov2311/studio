@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle, ThumbsUp, MessageSquareText, Hash } from 'lucide-react';
+import { Save, Timer, Bot, MessageCircle, Eye, Languages, Shuffle, ThumbsUp, MessageSquareText, Hash, Tag } from 'lucide-react';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from '../ui/switch';
@@ -46,6 +46,8 @@ const translations = {
     comments: 'Comments',
     min: 'Min',
     max: 'Max',
+    tag: 'Search by tag',
+    tagDesc: 'Search for videos with a specific tag. Leave empty for "For You" page.',
   },
   ru: {
     title: 'Настройки',
@@ -73,6 +75,8 @@ const translations = {
     comments: 'Комментарии',
     min: 'Мин',
     max: 'Макс',
+    tag: 'Поиск по тегу',
+    tagDesc: 'Искать видео по определенному тегу. Оставьте пустым для страницы "Для вас".',
   },
 };
 
@@ -93,6 +97,7 @@ export interface BotSettings {
     maxLikes: number;
     minComments: number;
     maxComments: number;
+    tag: string;
 }
 
 interface SettingsProps {
@@ -195,6 +200,11 @@ export function Settings({ settings, onSettingsChange, isBotRunning }: SettingsP
         <div className="space-y-4">
             <h3 className="text-lg font-medium font-headline">{t.suitableVideo}</h3>
             <div className="space-y-4 rounded-md border p-4">
+                <div className="space-y-2">
+                    <Label htmlFor="tag" className="flex items-center gap-2"><Tag className="h-4 w-4" /> {t.tag}</Label>
+                    <Input id="tag" type="text" value={localSettings.tag} onChange={handleInputChange} placeholder="e.g., programming" disabled={isBotRunning} />
+                    <p className="text-xs text-muted-foreground">{t.tagDesc}</p>
+                </div>
                  <div className="space-y-2">
                     <Label className="flex items-center gap-2"><Eye className="h-4 w-4" /> {t.views}</Label>
                     <div className="grid grid-cols-2 gap-4">
@@ -257,3 +267,5 @@ export function Settings({ settings, onSettingsChange, isBotRunning }: SettingsP
     </Card>
   );
 }
+
+    
