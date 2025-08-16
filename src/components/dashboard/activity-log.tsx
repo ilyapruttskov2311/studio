@@ -16,7 +16,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Button } from '../ui/button';
+
+const translations = {
+  en: {
+    title: 'Activity Log',
+    description: "A real-time stream of the bot's actions and events.",
+    noActivity: 'No activity yet. Start the bot to see the logs.',
+    viewVideo: 'View Video',
+  },
+  ru: {
+    title: 'Лог Активности',
+    description: 'Поток действий и событий бота в реальном времени.',
+    noActivity: 'Пока нет активности. Запустите бота, чтобы увидеть логи.',
+    viewVideo: 'Посмотреть видео',
+  },
+};
 
 export interface Log {
   type: 'success' | 'info' | 'error' | 'warning';
@@ -27,6 +41,7 @@ export interface Log {
 
 interface ActivityLogProps {
   logs: Log[];
+  language: 'en' | 'ru';
 }
 
 const logConfig = {
@@ -48,13 +63,14 @@ const logConfig = {
   },
 };
 
-export function ActivityLog({ logs }: ActivityLogProps) {
+export function ActivityLog({ logs, language }: ActivityLogProps) {
+  const t = translations[language];
   return (
     <Card className="shadow-lg h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline">Activity Log</CardTitle>
+        <CardTitle className="font-headline">{t.title}</CardTitle>
         <CardDescription>
-          A real-time stream of the bot's actions and events.
+          {t.description}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow overflow-hidden">
@@ -63,7 +79,7 @@ export function ActivityLog({ logs }: ActivityLogProps) {
             {logs.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center">
                     <Info className="h-8 w-8 mb-2"/>
-                    <p>No activity yet. Start the bot to see the logs.</p>
+                    <p>{t.noActivity}</p>
                 </div>
             )}
             <TooltipProvider>
@@ -97,7 +113,7 @@ export function ActivityLog({ logs }: ActivityLogProps) {
                             className="text-xs text-primary hover:underline flex items-center gap-1"
                           >
                             <Link className="h-3 w-3" />
-                            View Video
+                            {t.viewVideo}
                            </a>
                           </>
                         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Moon, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
@@ -9,12 +9,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { TikTokIcon } from '../icons';
 
-export function Header() {
+interface HeaderProps {
+    onThemeChange: (theme: 'light' | 'dark') => void;
+    currentTheme: 'light' | 'dark';
+}
+
+export function Header({ onThemeChange, currentTheme }: HeaderProps) {
   const router = useRouter();
 
   const handleLogout = () => {
@@ -30,7 +39,12 @@ export function Header() {
           <span className="hidden sm:inline">TikTok Arbitrage Automator</span>
         </a>
       </nav>
-      <div className="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+      <div className="flex items-center gap-2 md:ml-auto">
+        <Button variant="ghost" size="icon" onClick={() => onThemeChange(currentTheme === 'light' ? 'dark' : 'light')}>
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">

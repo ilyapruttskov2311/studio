@@ -5,7 +5,9 @@ import { Header } from '@/components/dashboard/header';
 import { ControlPanel } from '@/components/dashboard/control-panel';
 import { ActivityLog, type Log } from '@/components/dashboard/activity-log';
 import { Settings, type BotSettings } from '@/components/dashboard/settings';
+import { Account, type AccountData } from '@/components/dashboard/account';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const INITIAL_SETTINGS: BotSettings = {
   commentText: "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰",
@@ -14,6 +16,18 @@ const INITIAL_SETTINGS: BotSettings = {
   viewDelayMax: 6000,
   commentDelayMin: 4000,
   commentDelayMax: 6000,
+  shuffleEnabled: true,
+  language: 'ru',
+  theme: 'light',
+};
+
+const MOCK_ACCOUNT_DATA: AccountData = {
+    username: '@username',
+    profilePicture: 'https://placehold.co/150x150.png',
+    followers: 125800,
+    following: 450,
+    likes: 1200000,
+    bio: 'Just a user having fun on TikTok!',
 };
 
 const shuffleText = (text: string): string => {
@@ -76,12 +90,13 @@ export default function DashboardPage() {
         const commentDelay = Math.random() * (settings.commentDelayMax - settings.commentDelayMin) + settings.commentDelayMin;
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
-            const replyText = currentCommentCount % 10 === 0 ? shuffleText(settings.commentText) : settings.commentText;
+            const useShuffle = settings.shuffleEnabled && (currentCommentCount % 10 === 0);
+            const replyText = useShuffle ? shuffleText(settings.commentText) : settings.commentText;
             
             addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
 
-            if(currentCommentCount % 10 === 0) {
+            if(useShuffle) {
                 addLog('info', 'Shuffled comment text for variety.');
             }
 
@@ -119,28 +134,45 @@ export default function DashboardPage() {
     };
   }, [addLog]);
 
+  React.useEffect(() => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(settings.theme);
+  }, [settings.theme]);
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <Header />
+      <Header onThemeChange={(theme) => setSettings(s => ({...s, theme}))} currentTheme={settings.theme}/>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className="grid gap-4 auto-rows-max">
-            <ControlPanel
-              isRunning={isRunning}
-              stats={stats}
-              onStart={handleStart}
-              onStop={handleStop}
-            />
-            <Settings 
-              settings={settings}
-              onSettingsChange={setSettings}
-              isBotRunning={isRunning}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <ActivityLog logs={logs} />
-          </div>
-        </div>
+        <Tabs defaultValue="bot" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
+            <TabsTrigger value="bot">Bot</TabsTrigger>
+            <TabsTrigger value="account">Account</TabsTrigger>
+          </TabsList>
+          <TabsContent value="bot">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
+              <div className="grid gap-4 auto-rows-max">
+                <ControlPanel
+                  isRunning={isRunning}
+                  stats={stats}
+                  onStart={handleStart}
+                  onStop={handleStop}
+                  language={settings.language}
+                />
+                <Settings 
+                  settings={settings}
+                  onSettingsChange={setSettings}
+                  isBotRunning={isRunning}
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <ActivityLog logs={logs} language={settings.language}/>
+              </div>
+            </div>
+          </TabsContent>
+          <TabsContent value="account">
+            <Account data={MOCK_ACCOUNT_DATA} language={settings.language} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
