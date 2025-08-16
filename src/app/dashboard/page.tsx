@@ -4,9 +4,10 @@ import * as React from 'react';
 import { Header } from '@/components/dashboard/header';
 import { ControlPanel } from '@/components/dashboard/control-panel';
 import { ActivityLog, type Log } from '@/components/dashboard/activity-log';
+import { Settings } from '@/components/dashboard/settings';
 import { useToast } from '@/hooks/use-toast';
 
-const COMMENT_TEXT = "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰";
+const INITIAL_COMMENT_TEXT = "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰";
 
 const shuffleText = (text: string): string => {
   const prefix = text.substring(0, 27).split('').sort(() => 0.5 - Math.random()).join('');
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [isRunning, setIsRunning] = React.useState(false);
   const [logs, setLogs] = React.useState<Log[]>([]);
   const [stats, setStats] = React.useState({ videos: 0, comments: 0 });
+  const [commentText, setCommentText] = React.useState(INITIAL_COMMENT_TEXT);
   const { toast } = useToast();
   
   const botIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -65,7 +67,7 @@ export default function DashboardPage() {
         const commentDelay = Math.random() * (6000 - 4000) + 4000;
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
-            const replyText = currentCommentCount % 10 === 0 ? shuffleText(COMMENT_TEXT) : COMMENT_TEXT;
+            const replyText = currentCommentCount % 10 === 0 ? shuffleText(commentText) : commentText;
             
             addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
@@ -77,7 +79,7 @@ export default function DashboardPage() {
         }, (i + 1) * commentDelay);
         commentTimeoutsRef.current.push(timeoutId);
     }
-  }, [addLog, stats.comments]);
+  }, [addLog, stats.comments, commentText]);
 
 
   const handleStart = () => {
@@ -113,12 +115,18 @@ export default function DashboardPage() {
       <Header />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <ControlPanel
-            isRunning={isRunning}
-            stats={stats}
-            onStart={handleStart}
-            onStop={handleStop}
-          />
+          <div className="flex flex-col gap-4">
+            <ControlPanel
+              isRunning={isRunning}
+              stats={stats}
+              onStart={handleStart}
+              onStop={handleStop}
+            />
+            <Settings 
+              commentText={commentText}
+              onCommentTextChange={setCommentText}
+            />
+          </div>
           <div className="lg:col-span-2">
             <ActivityLog logs={logs} />
           </div>
