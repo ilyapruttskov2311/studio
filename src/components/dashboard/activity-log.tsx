@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Info, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Info, XCircle, AlertTriangle, Link } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -16,11 +16,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Button } from '../ui/button';
 
 export interface Log {
   type: 'success' | 'info' | 'error' | 'warning';
   message: string;
   timestamp: Date;
+  link?: string;
 }
 
 interface ActivityLogProps {
@@ -74,16 +76,32 @@ export function ActivityLog({ logs }: ActivityLogProps) {
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-sm font-medium leading-none">{log.message}</p>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                           <p className="text-xs text-muted-foreground cursor-default">
-                            {log.timestamp.toLocaleTimeString()}
-                           </p>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                           <p>{log.timestamp.toLocaleString()}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="flex items-center gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                             <p className="text-xs text-muted-foreground cursor-default">
+                              {log.timestamp.toLocaleTimeString()}
+                             </p>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                             <p>{log.timestamp.toLocaleString()}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        {log.link && (
+                          <>
+                           <span className="text-xs text-muted-foreground">&middot;</span>
+                           <a 
+                            href={log.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Link className="h-3 w-3" />
+                            View Video
+                           </a>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
