@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User, Moon, Sun } from 'lucide-react';
+import { LogOut, User, Moon, Sun, PlusCircle, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
@@ -9,26 +9,41 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { TikTokIcon } from '../icons';
+import { type AccountData } from './account';
 
 interface HeaderProps {
     onThemeChange: (theme: 'light' | 'dark') => void;
     currentTheme: 'light' | 'dark';
+    accounts: AccountData[];
+    activeAccountId: string | null;
+    onAccountChange: (accountId: string) => void;
+    onAddAccount: () => void;
 }
 
-export function Header({ onThemeChange, currentTheme }: HeaderProps) {
+export function Header({ 
+  onThemeChange, 
+  currentTheme,
+  accounts,
+  activeAccountId,
+  onAccountChange,
+  onAddAccount
+}: HeaderProps) {
   const router = useRouter();
 
   const handleLogout = () => {
+    // In a real app, you'd clear all auth state
+    localStorage.removeItem('tiktok_accounts');
+    localStorage.removeItem('active_tiktok_account_id');
     router.push('/login');
   };
+
+  const activeAccount = accounts.find(acc => acc.id === activeAccountId);
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-10">
@@ -49,24 +64,41 @@ export function Header({ onThemeChange, currentTheme }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@user" data-ai-hint="profile avatar" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={activeAccount?.profilePicture} alt={activeAccount?.username} data-ai-hint="profile avatar" />
+                <AvatarFallback>{activeAccount?.username?.charAt(1)?.toUpperCase() || '?'}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuContent className="w-64" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">@username</p>
+                <p className="text-sm font-medium leading-none">{activeAccount?.username || "No Account"}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  Logged in
+                  {activeAccount ? "Logged in" : "No account selected"}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuRadioGroup value={activeAccountId || ''} onValueChange={onAccountChange}>
+              <DropdownMenuLabel>Switch Account</DropdownMenuLabel>
+              {accounts.map(account => (
+                <DropdownMenuRadioItem key={account.id} value={account.id} className="cursor-pointer">
+                  <Avatar className="h-6 w-6 mr-2">
+                    <AvatarImage src={account.profilePicture} alt={account.username} />
+                    <AvatarFallback>{account.username.charAt(1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span>{account.username}</span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onAddAccount} className="cursor-pointer">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              <span>Add Account</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>Log out of all accounts</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

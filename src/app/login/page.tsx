@@ -9,9 +9,9 @@ export default function LoginPage() {
           <div className="rounded-full bg-primary/10 p-4 text-primary">
             <TikTokIcon className="h-10 w-10" />
           </div>
-          <h1 className="text-3xl font-bold font-headline text-center">TikTok Arbitrage Automator</h1>
+          <h1 className="text-3xl font-bold font-headline text-center">Add TikTok Account</h1>
           <p className="text-muted-foreground text-center">
-            Log in with your TikTok account to get started.
+            Enter your credentials to add a new account to the automator.
           </p>
         </div>
         <LoginForm />

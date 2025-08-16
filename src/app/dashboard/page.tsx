@@ -8,6 +8,7 @@ import { Settings, type BotSettings } from '@/components/dashboard/settings';
 import { Account, type AccountData } from '@/components/dashboard/account';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRouter } from 'next/navigation';
 
 const INITIAL_SETTINGS: BotSettings = {
   commentText: "፪፩፩፰፪፪፱፪፰፯፱፰፪፱፱፩፰፱፪፪፩፱፰፪፰፯፱да ебать, в тг tmmsk25 дохуя темок, всё об арбитраже, целый гайд по манипуляциям, постоянный доступ к ворку и всё это абсолютно бесплатно 😩፯፪፰፱፱፱፪፱፰፩፪፩፰፩፪፪፱፰፱፪፰፱፩፪፯፪፰",
@@ -29,15 +30,6 @@ const INITIAL_SETTINGS: BotSettings = {
   tag: '',
 };
 
-const MOCK_ACCOUNT_DATA: AccountData = {
-    username: '@username',
-    profilePicture: 'https://placehold.co/150x150.png',
-    followers: 125800,
-    following: 450,
-    likes: 1200000,
-    bio: 'Just a user having fun on TikTok!',
-};
-
 const shuffleText = (text: string, count: number): string => {
   if (count <= 0) return text;
   if (text.length < count * 2) return text.split('').sort(() => 0.5 - Math.random()).join('');
@@ -53,11 +45,17 @@ const translations = {
       bot: 'Bot',
       settings: 'Settings',
       account: 'Account',
+      noAccounts: 'No accounts found.',
+      addAccountPrompt: 'Please add an account to get started.',
+      goToLogin: 'Add Account',
     },
     ru: {
       bot: 'Бот',
       settings: 'Настройки',
       account: 'Аккаунт',
+      noAccounts: 'Аккаунты не найдены.',
+      addAccountPrompt: 'Пожалуйста, добавьте аккаунт, чтобы начать.',
+      goToLogin: 'Добавить аккаунт',
     },
 };
 
@@ -66,10 +64,52 @@ export default function DashboardPage() {
   const [logs, setLogs] = React.useState<Log[]>([]);
   const [stats, setStats] = React.useState({ videos: 0, comments: 0 });
   const [settings, setSettings] = React.useState<BotSettings>(INITIAL_SETTINGS);
+  
+  const [accounts, setAccounts] = React.useState<AccountData[]>([]);
+  const [activeAccountId, setActiveAccountId] = React.useState<string | null>(null);
+
   const { toast } = useToast();
+  const router = useRouter();
   
   const botIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const commentTimeoutsRef = React.useRef<NodeJS.Timeout[]>([]);
+
+  // Load accounts from localStorage on initial render
+  React.useEffect(() => {
+    try {
+      const savedAccounts = localStorage.getItem('tiktok_accounts');
+      const savedActiveId = localStorage.getItem('active_tiktok_account_id');
+      if (savedAccounts) {
+        const parsedAccounts = JSON.parse(savedAccounts);
+        setAccounts(parsedAccounts);
+        if (savedActiveId && parsedAccounts.find((a: AccountData) => a.id === savedActiveId)) {
+          setActiveAccountId(savedActiveId);
+        } else if (parsedAccounts.length > 0) {
+          setActiveAccountId(parsedAccounts[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse accounts from localStorage", error);
+    }
+  }, []);
+
+  // Save accounts to localStorage whenever they change
+  React.useEffect(() => {
+    if (accounts.length > 0) {
+      localStorage.setItem('tiktok_accounts', JSON.stringify(accounts));
+    } else {
+      localStorage.removeItem('tiktok_accounts');
+    }
+    if (activeAccountId) {
+      localStorage.setItem('active_tiktok_account_id', activeAccountId);
+    } else {
+      localStorage.removeItem('active_tiktok_account_id');
+    }
+  }, [accounts, activeAccountId]);
+  
+  const activeAccount = React.useMemo(() => {
+    return accounts.find(acc => acc.id === activeAccountId);
+  }, [accounts, activeAccountId]);
 
   const t = translations[settings.language];
 
@@ -78,19 +118,24 @@ export default function DashboardPage() {
   }, []);
 
   const runBotCycle = React.useCallback(async () => {
-    if (settings.tag) {
-        addLog('info', `Searching for a suitable video with tag #${settings.tag}...`);
-    } else {
-        addLog('info', 'Searching for a suitable video...');
+    if (!activeAccount) {
+      addLog('error', 'No active account selected.');
+      return;
     }
+
+    let logMessage = `[${activeAccount.username}] `;
+    if (settings.tag) {
+        logMessage += `Searching for a suitable video with tag #${settings.tag}...`;
+    } else {
+        logMessage += 'Searching for a suitable video...';
+    }
+    addLog('info', logMessage);
     
-    // Simulate API call to get video
     await new Promise(res => setTimeout(res, 1500));
     const videoId = `7${Math.random().toString().substring(2, 20)}`;
     const author = `user_${Math.random().toString(36).substring(2, 9)}`;
     const videoUrl = `https://www.tiktok.com/@${author}/video/${videoId}`;
     
-    // Simulate video stats
     const videoStats = {
       views: Math.floor(Math.random() * 1500000),
       likes: Math.floor(Math.random() * 150000),
@@ -121,7 +166,7 @@ export default function DashboardPage() {
 
     addLog('info', `[${videoId}] Analyzing comments...`);
     const totalComments = Math.floor(Math.random() * 50);
-    let commentsToPost = Math.floor(Math.random() * 8) + 2; // 2-10 comments
+    let commentsToPost = Math.floor(Math.random() * 8) + 2;
 
     if (totalComments < 20) {
         commentsToPost = Math.floor(totalComments / 2);
@@ -138,7 +183,6 @@ export default function DashboardPage() {
         const timeoutId = setTimeout(() => {
             const currentCommentCount = stats.comments + i + 1;
             const useShuffle = settings.shuffleEnabled && (currentCommentCount % 10 === 0);
-            const replyText = useShuffle ? shuffleText(settings.commentText, settings.shuffleCharacterCount) : settings.commentText;
             
             addLog('success', `[${videoId}] Replied to comment #${i+1}.`);
             setStats(prev => ({ ...prev, comments: prev.comments + 1 }));
@@ -150,15 +194,19 @@ export default function DashboardPage() {
         }, (i + 1) * commentDelay);
         commentTimeoutsRef.current.push(timeoutId);
     }
-  }, [addLog, stats.comments, settings]);
+  }, [addLog, stats.comments, settings, activeAccount]);
 
 
   const handleStart = () => {
+    if (!activeAccount) {
+      toast({ title: "Error", description: "No active account selected. Please select an account first.", variant: 'destructive' });
+      return;
+    }
     setIsRunning(true);
-    addLog('info', 'Bot started.');
+    addLog('info', `Bot started for ${activeAccount.username}.`);
     toast({ title: "Bot Started", description: "The automator is now running.", variant: 'default' });
-    runBotCycle(); // Run first cycle immediately
-    botIntervalRef.current = setInterval(runBotCycle, settings.cycleInterval); // Subsequent cycles
+    runBotCycle();
+    botIntervalRef.current = setInterval(runBotCycle, settings.cycleInterval);
   };
 
   const handleStop = () => {
@@ -186,9 +234,26 @@ export default function DashboardPage() {
     document.documentElement.classList.add(settings.theme);
   }, [settings.theme]);
 
+  if (accounts.length === 0) {
+    return (
+       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background text-center p-4">
+         <h1 className="text-2xl font-bold mb-2">{t.noAccounts}</h1>
+         <p className="text-muted-foreground mb-4">{t.addAccountPrompt}</p>
+         <Button onClick={() => router.push('/login')}>{t.goToLogin}</Button>
+       </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <Header onThemeChange={(theme) => setSettings(s => ({...s, theme}))} currentTheme={settings.theme}/>
+      <Header
+        onThemeChange={(theme) => setSettings(s => ({...s, theme}))}
+        currentTheme={settings.theme}
+        accounts={accounts}
+        activeAccountId={activeAccountId}
+        onAccountChange={setActiveAccountId}
+        onAddAccount={() => router.push('/login')}
+      />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="bot" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto border">
@@ -222,12 +287,10 @@ export default function DashboardPage() {
             </div>
           </TabsContent>
           <TabsContent value="account">
-            <Account data={MOCK_ACCOUNT_DATA} language={settings.language} />
+            <Account data={activeAccount!} language={settings.language} />
           </TabsContent>
         </Tabs>
       </main>
     </div>
   );
 }
-
-    
